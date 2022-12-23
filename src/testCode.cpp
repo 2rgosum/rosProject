@@ -95,7 +95,7 @@ int main(int argc, char** argv){
 				std::cout << "on";
 			}
 			
-			cmd.linear.x=linear_vel*vx, cmd.linear.y=linear_vel*vy, cmd.linear.z=linear_vel*>
+			cmd.linear.x=linear_vel*vx, cmd.linear.y=linear_vel*vy, cmd.linear.z=linear_vel*vr;
 			cmd.angular.x=0, cmd.angular.y=0, cmd.angular.z=angular_vel*vr;
 			pub.publish(cmd);
 			loop_rate.sleep();
