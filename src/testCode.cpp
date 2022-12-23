@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 	ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 5);
 	
 	// Subscribe에서의 이벤트가 있을시 getImage가 작동하도록 설정
-	double vx=0.3, vy=0, vz=0, vr=0;
+	double vx=0.1, vy=0, vz=0, vr=0;
 	double angle=0;
 	double linear_vel=1;
 	double angular_vel=1;
@@ -49,13 +49,20 @@ int main(int argc, char** argv){
 		ros::spinOnce();
 
 		if(!src.empty()){
-			cv::Mat dst;
+			cv::Mat grayImg;
 			cv::Mat dst2;
 			cv::Mat i_canny;
 			vector<Vec2f> lines;
-			cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
-			cv::threshold(dst,dst2,220,255,cv::THRESH_BINARY);
-			cv::Canny(dst,i_canny,150,255);
+			cv::cvtColor(src, grayImg, cv::COLOR_BGR2GRAY);
+			
+			//ROI Setting
+			cv::Rect rect_1(0, 0, 640, 160);
+                	cv::Mat rect_roi_1 = grayImg(rect_1);
+
+                	rect_roi_1 -= rect_roi_1;
+
+			cv::threshold(grayImg,dst,220,255,cv::THRESH_BINARY);
+			cv::Canny(grayImg,i_canny,150,255);
 			cv::HoughLines(i_canny,lines,1,CV_PI/180,150);
 			cv::Mat img_hough;
 			i_canny.copyTo(img_hough);
@@ -75,19 +82,18 @@ int main(int argc, char** argv){
 				line(img_hough, pt1, pt2, Scalar(0,0,255), 2, 8);
 				line(img_lane, pt1, pt2, Scalar::all(255), 1, 8);
 				angle = theta*180/CV_PI;
-				//      cout << angle <<'\n';
 			}
 			
 			cout<<angle<<'\n';
-			if(angle>=130 || angle <= 45){
-				vx=0.3, vy=0, vz=0, vr=0;
+			if(angle>=133 || angle <= 42){
+				vx=0.1, vy=0, vz=0, vr=0;
 				std::cout << "straight";
 			}
-			else if(angle <130 && angle >=100){
-				vx=0.3, vy=0, vz=0, vr=1;
+			else if(angle <133 && angle >=97){
+				vx=0.1, vy=0, vz=0, vr=0.5;
 				std::cout <<"right"; }
-			else if(angle <=75 && angle >45){
-				vx=0.3, vy=0, vz=0, vr=-1;
+			else if(angle <=72 && angle >42){
+				vx=0.1, vy=0, vz=0, vr=-0.5;
 				std::cout <<"left";
 			}
 			else{
@@ -101,9 +107,7 @@ int main(int argc, char** argv){
 			loop_rate.sleep();
 			
 			// 받아온 이미지 
-        		cv::imshow("src", dst);
-			//cv::imshow("threshold",dst2);   
-			//cv::imshow("Canny",i_canny);
+        		cv::imshow("src", grayImg);
         		cv::imshow("line",img_lane);
             		waitKey(1);
 		}
